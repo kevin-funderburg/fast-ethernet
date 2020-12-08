@@ -1,19 +1,23 @@
 //
 // Created by Kevin Funderburg on 12/8/20.
 //
-
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
 #include "frame_q.h"
 
 FrameQueue* frameQueue()
 {
     FrameQueue* this = (FrameQueue *) malloc(sizeof(FrameQueue));
-    eq_head, eq_tail = NULL
+    head = tail = next = NULL;
 }
+
 
 frame* top()
 {
     return fq_head;
 }
+
 
 void pop()
 {
@@ -21,6 +25,7 @@ void pop()
     fq_head = fq_head->fq_next;
     delete tempPtr;
 }
+
 
 void push(frame *newFrame)
 {

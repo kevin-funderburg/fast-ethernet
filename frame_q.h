@@ -7,15 +7,17 @@
 
 struct frame
 {
-    int seq;    //sequence number
-    int src;    //source address
-    int dest;   //destination address
-    int data;   //data to send
+    int    seq;    //sequence number
+    int    src;    //source address
+    int    dest;   //destination address
+    int    data;   //data to send
+    frame* next;
 };
 
 typedef struct FrameQueue
 {
-    frame* eq_head, eq_tail;
+    frame* head,
+           tail;
 } FrameQueue;
 
 FrameQueue* frameQueue();
@@ -24,6 +26,6 @@ frame* top();
 
 void pop();
 
-void push(frame *newFrame);
+void push(frame* newFrame);
 
 #endif //FRAMEQ_H

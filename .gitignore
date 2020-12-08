@@ -7,3 +7,5 @@
 .idea
 
 *.scpt
+
+cmake-build-debug*
