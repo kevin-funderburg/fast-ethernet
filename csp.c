@@ -1,7 +1,15 @@
-
+#include "frame.h"
 #include "tcp.h"
 
+void getInstr(char* line)
+{
 
+}
+
+/**
+ * we will assume for now that the station will send the csp 'frame' that looks like:
+ * "sequence,srcaddress,destinationaddr,data"
+ */
 int main(int argc, char **argv)
 {
     int					i, maxi, maxfd, listenfd, connfd, sockfd;
@@ -67,6 +75,9 @@ int main(int argc, char **argv)
                 continue;				/* no more readable descriptors */
         }
 
+
+
+
         for (i = 0; i <= maxi; i++) {	/* check all clients for data */
             if ( (sockfd = client[i]) < 0)
                 continue;
@@ -77,7 +88,28 @@ int main(int argc, char **argv)
                     FD_CLR(sockfd, &allset);
                     client[i] = -1;
                 } else
+                {
+                    // parse args
+                    char args[10][25];
+                    char *pch;
+                    pch = strtok(buf, " ");
+                    strcpy(args[0], pch);
+                    int argc = 0;
+                    while (pch != NULL)
+                    {
+                        argc++;
+                        pch = strtok(NULL, " ,.-\n");
+                        if (pch != NULL)
+                            strcpy(args[argc], pch);
+                    }
+                    printf("parsed args:\n");
+                    for (int i = 0; i < argc; ++i)
+                        printf("args[%d]\t%s\n", i, args[i]);
+
+
                     Writen(sockfd, buf, n);
+
+                }
 
                 if (--nready <= 0)
                     break;				/* no more readable descriptors */
