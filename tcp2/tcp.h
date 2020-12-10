@@ -6,17 +6,33 @@
 #define TCP_H
 
 #endif //TCP_H
-#include <stdio.h>
-#include	<errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-//#include <pthread.h>
+#include    <sys/types.h>   /* basic system data types */
+#include    <sys/socket.h>  /* basic socket definitions */
+#if TIME_WITH_SYS_TIME
+#include    <sys/time.h>    /* timeval{} for select() */
+#include    <time.h>        /* timespec{} for pselect() */
+#else
+#if HAVE_SYS_TIME_H
+#include    <sys/time.h>    /* includes <time.h> unsafely */
+#else
+#include    <time.h>        /* old system? */
+#endif
+#endif
+#include    <netinet/in.h>  /* sockaddr_in{} and other Internet defns */
+#include    <arpa/inet.h>   /* inet(3) functions */
+#include    <errno.h>
+#include    <fcntl.h>       /* for nonblocking */
+#include    <netdb.h>
+#include    <signal.h>
+#include    <stdio.h>
+#include    <stdlib.h>
+#include    <string.h>
+#include    <sys/stat.h>    /* for S_xxx file mode constants */
+#include    <sys/uio.h>     /* for iovec{} and readv/writev */
+#include    <unistd.h>
+#include    <sys/wait.h>
+#include    <sys/un.h>      /* for Unix domain sockets */
+#include    <sys/select.h>
 #define LISTENQ 5
 #define MAXLINE 4096
 #define SERV_PORT 9877
