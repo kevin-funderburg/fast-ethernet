@@ -4,7 +4,21 @@
 
 #include "tcp.h"
 
+void log()
+{
+    //TODO
+}
 
+char* getInst()
+{
+    FILE *input;
+    input = fopen(input, "r");
+    if(!input){
+        printf("error: unable to read source file %s\n", INPUT);
+        err_sys("couldn't open input file\n")
+    }
+
+}
 void str_cli(FILE *fp, int sockfd)
 {
     int			maxfdp1, stdineof;
@@ -12,12 +26,12 @@ void str_cli(FILE *fp, int sockfd)
     char		buf[MAXLINE];
     int		    n;
 
-    stdineof = 0;   // as long as 0, select on standard in put for read
+    stdineof = 0;           // as long as 0, select on standard in for read
     FD_ZERO(&rset);     // initialize the descriptor set
     for ( ; ; ) {
         if (stdineof == 0)
             FD_SET(fileno(fp), &rset);   // turn on the IO file pointer bit
-        FD_SET(sockfd, &rset);          //  turn on the corresponding socket bit
+        FD_SET(sockfd, &rset);              //  turn on the corresponding socket bit
 
         // fileno() changes fp pointer to descriptor
         // select will select the max of the desriptors

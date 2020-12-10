@@ -36,6 +36,7 @@
 #define LISTENQ 5
 #define MAXLINE 4096
 #define SERV_PORT 9877
+#define INPUT "./input/data.txt"
 /* Following shortens all the typecasts of pointer arguments: */
 #define	SA	struct sockaddr
 

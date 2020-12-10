@@ -8,8 +8,8 @@ include_directories(.)
 add_executable(fast_ethernet
         csp.c
         csp.h
-        frame_q.c
-        frame_q.h
+        frame.c
+        frame.h
         main.c
         sp.c
         sp.h)

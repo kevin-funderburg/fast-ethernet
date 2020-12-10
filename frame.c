@@ -4,12 +4,13 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include "frame_q.h"
+#include "frame.h"
 
 FrameQueue* frameQueue()
 {
     FrameQueue* this = (FrameQueue *) malloc(sizeof(FrameQueue));
-    head = tail = next = NULL;
+    this->head = NULL;
+    this->tail = NULL;
 }
 
 

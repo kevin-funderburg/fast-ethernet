@@ -2,22 +2,23 @@
 // Created by Kevin Funderburg on 12/8/20.
 //
 
-#ifndef FRAMEQ_H
-#define FRAMEQ_H
+#ifndef FRAME_H
+#define FRAME_H
 
-struct frame
+typedef struct framenode frame;
+
+struct framenode
 {
     int    seq;    //sequence number
     int    src;    //source address
     int    dest;   //destination address
     int    data;   //data to send
-    frame* next;
+    struct frame* next;
 };
 
 typedef struct FrameQueue
 {
-    frame* head,
-           tail;
+    frame* head, tail;
 } FrameQueue;
 
 FrameQueue* frameQueue();
@@ -28,4 +29,4 @@ void pop();
 
 void push(frame* newFrame);
 
-#endif //FRAMEQ_H
+#endif //FRAME_H
