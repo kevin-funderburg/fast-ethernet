@@ -7,30 +7,42 @@
 
 void str_cli(FILE *fp, int sockfd)
 {
-    int			maxfdp1;
+    int			maxfdp1, stdineof;
     fd_set		rset;
-    char		sendline[MAXLINE], recvline[MAXLINE];
+    char		buf[MAXLINE];
+    int		    n;
 
+    stdineof = 0;   // as long as 0, select on standard in put for read
     FD_ZERO(&rset);     // initialize the descriptor set
     for ( ; ; ) {
-        FD_SET(fileno(fp), &rset);   // turn on the IO file pointer bit
+        if (stdineof == 0)
+            FD_SET(fileno(fp), &rset);   // turn on the IO file pointer bit
         FD_SET(sockfd, &rset);          //  turn on the corresponding socket bit
+
         // fileno() changes fp pointer to descriptor
         // select will select the max of the desriptors
         maxfdp1 = max(fileno(fp), sockfd) + 1;
         Select(maxfdp1, &rset, NULL, NULL, NULL);
 
         if (FD_ISSET(sockfd, &rset)) {	/* socket is readable */
-            if (read(sockfd, recvline, MAXLINE) == 0)
-//            if (readline(sockfd, recvline, MAXLINE) == 0)
-                err_quit("str_cli: server terminated prematurely");
-            fputs(recvline, stdout);
+            if ((n = read(sockfd, buf, MAXLINE)) == 0) {
+                if (stdineof == 1)
+                    return;        /* normal termination */
+                else
+                    err_quit("str_cli: server terminated prematurely");
+            }
+            write(fileno(stdout), buf, n);
         }
 
         if (FD_ISSET(fileno(fp), &rset)) {  /* input is readable */
-            if (fgets(sendline, MAXLINE, fp) == NULL)
-                return;		/* all done */
-            Writen(sockfd, sendline, strlen(sendline));
+            if ( (n = read(fileno(fp), buf, MAXLINE)) == 0) {
+                stdineof = 1;
+                Shutdown(sockfd, SHUT_WR);	/* send FIN */
+                FD_CLR(fileno(fp), &rset);
+                continue;
+            }
+
+            Writen(sockfd, buf, n);
         }
     }
 }

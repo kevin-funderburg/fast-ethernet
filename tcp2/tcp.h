@@ -45,6 +45,7 @@ void            Connect(int, const SA *, socklen_t);
 void            err_sys(const char* msg);
 void            err_quit(const char* msg);
 int             Socket(int family, int type, int protocol);
+void            Shutdown(int fd, int how);
 const char*     Inet_ntop(int family, const void *addrptr, char *strptr, size_t len);
 void            Writen(int fd, void *ptr, size_t nbytes);
 ssize_t         writen(int fd, const void *vptr, size_t n);
@@ -125,6 +126,12 @@ void err_quit(const char *msg)
     exit(1);
 }
 
+
+void Shutdown(int fd, int how)
+{
+    if (shutdown(fd, how) < 0)
+        err_sys("shutdown error");
+}
 
 
 ssize_t writen(int fd, const void *vptr, size_t n)		/* Write "n" bytes to a descriptor. */
