@@ -7,6 +7,7 @@
 
 #endif //TCP_H
 #include <stdio.h>
+#include	<errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -17,6 +18,7 @@
 #include <arpa/inet.h>
 //#include <pthread.h>
 #define LISTENQ 5
+#define MAXLINE 4096
 #define SERV_PORT 9877
 /* Following shortens all the typecasts of pointer arguments: */
 #define	SA	struct sockaddr
