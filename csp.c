@@ -1,36 +1,13 @@
-//
-// Created by Kevin Funderburg on 12/8/20.
-//
 
-#include "csp.h"
+#include "tcp.h"
 
-void error(char *msg) {
-    perror(msg);
-    exit(1);
-}
-
-
-/**
- * wrapper function to handle errors
- * @return int
- */
-int Socket(int family, int type, int protocol)
-{
-    int n;
-
-    if ((n = socket(family, type, protocol)) < 0)
-        err_sys("socket error");
-    return (n);
-}
 
 int main(int argc, char **argv)
 {
-    // maxfd (plus one) is the current value of the first argument to select
-
     int					i, maxi, maxfd, listenfd, connfd, sockfd;
     int					nready, client[FD_SETSIZE];
     ssize_t				n;
-    fd_set				rset, allset;
+    fd_set				rset, allset;       //set of file descriptors
     char				buf[MAXLINE];
     socklen_t			clilen;
     struct sockaddr_in	cliaddr, servaddr;
@@ -42,67 +19,69 @@ int main(int argc, char **argv)
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     servaddr.sin_port        = htons(SERV_PORT);
 
-    Bind(listenfd, (SA *) &servaddr, sizeof(servaddr));
+    bind(listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
 
-    Listen(listenfd, LISTENQ);
+    listen(listenfd, LISTENQ);
 
-    maxfd = listenfd;			// initialize
-    maxi = -1;					// index into client[] array
+    printf("listening...\n");
+    maxfd = listenfd;			/* initialize */
+    maxi = -1;					/* index into client[] array */
     for (i = 0; i < FD_SETSIZE; i++)
-        client[i] = -1;			// -1 indicates available entry
-    FD_ZERO(&allset);
-    FD_SET(listenfd, &allset);
+        client[i] = -1;			/* -1 indicates available entry */
+    FD_ZERO(&allset);           // clear all bits in fdset
+    FD_SET(listenfd, &allset);  // turn on the bit for fd in fdset
 
-    for(;;)
-    {
-        rset = allset; // structure assignment
+
+    for ( ; ; ) {
+        rset = allset;		/* structure assignment */
         nready = Select(maxfd+1, &rset, NULL, NULL, NULL);
 
-        if (FD_ISSET(listenfd, &rset))      // new client connection
-        {
+        if (FD_ISSET(listenfd, &rset)) {	/* new client connection */
             clilen = sizeof(cliaddr);
             connfd = Accept(listenfd, (SA *) &cliaddr, &clilen);
+            //printf("attempting to get \n", );
+            printf("new client added: %s, port %d\n", "fix later", ntohs(cliaddr.sin_port));
+//#ifdef	NOTDEFF
+            printf("INET_ADDRSTRLEN: %d\n", INET_ADDRSTRLEN);  
+            
+            //printf("new client: %s, port %d\n",
+			//		Inet_ntop(AF_INET, &cliaddr.sin_addr, 4, INET_ADDRSTRLEN),
+			//		ntohs(cliaddr.sin_port));
+//#endif
 
-            for (int i = 0; i < Fd_SETSIZE; ++i)
-            {
+            for (i = 0; i < FD_SETSIZE; i++)
                 if (client[i] < 0) {
-                    client[i] = connfd;     // save descriptor
+                    client[i] = connfd;	/* save descriptor */
                     break;
                 }
-            }
             if (i == FD_SETSIZE)
-                error("too many clients");
+                err_quit("too many clients");
 
-            FD_SET(connfd, &allset);        // add new descriptor to set
+            FD_SET(connfd, &allset);	/* add new descriptor to set */
             if (connfd > maxfd)
-                maxfd = connfd;             // for select
-
+                maxfd = connfd;			/* for select */
             if (i > maxi)
-                maxi = i;                   // max index in client{} array
+                maxi = i;				/* max index in client[] array */
 
             if (--nready <= 0)
-                continue;                   // no more readable descriptors
+                continue;				/* no more readable descriptors */
         }
 
-        for (i = 0; i <= maxi; i++)         // check all clients for data
-        {
+        for (i = 0; i <= maxi; i++) {	/* check all clients for data */
             if ( (sockfd = client[i]) < 0)
                 continue;
             if (FD_ISSET(sockfd, &rset)) {
-                if ( (n = Read(sockfd, buf, MAXLINE)) == 0) {
-                    // connection closed by client
-                    Close(sockfd);
+                if ( (n = read(sockfd, buf, MAXLINE)) == 0) {
+                    /*4connection closed by client */
+                    close(sockfd);
                     FD_CLR(sockfd, &allset);
                     client[i] = -1;
                 } else
                     Writen(sockfd, buf, n);
 
                 if (--nready <= 0)
-                    break;				// no more readable descriptors
+                    break;				/* no more readable descriptors */
             }
         }
-
-
     }
-
 }
