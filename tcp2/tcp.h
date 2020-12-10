@@ -155,3 +155,8 @@ void Writen(int fd, void *ptr, size_t nbytes)
     if (writen(fd, ptr, nbytes) != nbytes)
         err_sys("writen error");
 }
+
+
+/* macros */
+#define	min(a,b)	((a) < (b) ? (a) : (b))
+#define	max(a,b)	((a) > (b) ? (a) : (b))
