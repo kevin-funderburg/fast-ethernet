@@ -23,6 +23,7 @@ int main(int argc, char **argv)
 
     listen(listenfd, LISTENQ);
 
+    printf("listening...\n");
     maxfd = listenfd;			/* initialize */
     maxi = -1;					/* index into client[] array */
     for (i = 0; i < FD_SETSIZE; i++)
@@ -38,11 +39,15 @@ int main(int argc, char **argv)
         if (FD_ISSET(listenfd, &rset)) {	/* new client connection */
             clilen = sizeof(cliaddr);
             connfd = Accept(listenfd, (SA *) &cliaddr, &clilen);
-#ifdef	NOTDEF
-            printf("new client: %s, port %d\n",
-					Inet_ntop(AF_INET, &cliaddr.sin_addr, 4, NULL),
-					ntohs(cliaddr.sin_port));
-#endif
+            //printf("attempting to get \n", );
+            printf("new client added: %s, port %d\n", "fix later", ntohs(cliaddr.sin_port));
+//#ifdef	NOTDEFF
+            printf("INET_ADDRSTRLEN: %d\n", INET_ADDRSTRLEN);  
+            
+            //printf("new client: %s, port %d\n",
+			//		Inet_ntop(AF_INET, &cliaddr.sin_addr, 4, INET_ADDRSTRLEN),
+			//		ntohs(cliaddr.sin_port));
+//#endif
 
             for (i = 0; i < FD_SETSIZE; i++)
                 if (client[i] < 0) {
