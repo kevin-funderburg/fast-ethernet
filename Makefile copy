@@ -1,0 +1,16 @@
+CC = gcc
+CFLAGS = -I./src -std=gnu99 -g
+
+obj/csp: src/csp.c src/csp.h src/frame.h | obj
+	$(CC) $(CFLAGS) -o $@ $^
+
+obj/station: src/station.c src/frame.h | obj
+	$(CC) $(CFLAGS) -o $@ $^
+
+.PHONY: clean test objdir
+
+obj:
+	@mkdir -p obj
+
+clean:
+	@rm -rf obj

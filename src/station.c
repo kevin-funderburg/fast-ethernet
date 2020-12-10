@@ -3,8 +3,9 @@
 //
 
 #include "tcp.h"
+#include "frame.h"
 
-void log()
+void logger()
 {
     //TODO
 }
@@ -15,7 +16,7 @@ char* getInst()
     input = fopen(input, "r");
     if(!input){
         printf("error: unable to read source file %s\n", INPUT);
-        err_sys("couldn't open input file\n")
+        err_sys("couldn't open input file\n");
     }
 
 }

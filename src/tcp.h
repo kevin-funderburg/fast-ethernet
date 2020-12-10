@@ -33,6 +33,8 @@
 #include    <sys/wait.h>
 #include    <sys/un.h>      /* for Unix domain sockets */
 #include    <sys/select.h>
+#include    <stdbool.h>
+
 #define LISTENQ 5
 #define MAXLINE 4096
 #define SERV_PORT 9877

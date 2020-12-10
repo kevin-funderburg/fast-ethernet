@@ -1,9 +1,41 @@
-#include "frame.h"
 #include "tcp.h"
+#include "frame.h"
+
+FrameQueue* dataQ;
+FrameQueue* reqQ;
+
+bool        queuesSet = false;
 
 void getInstr(char* line)
 {
 
+}
+
+void argparse(char* argv)
+{
+    // parse args
+    char args[10][25];
+    char *pch;
+    pch = strtok(argv, ",");
+    strcpy(args[0], pch);
+    int argc = 0;
+    while (pch != NULL)
+    {
+        argc++;
+        pch = strtok(NULL, " ,.-\n");
+        if (pch != NULL)
+            strcpy(args[argc], pch);
+    }
+    printf("parsed args:\n");
+    for (int i = 0; i < argc; ++i)
+        printf("args[%d]\t%s\n", i, args[i]);
+
+    frame* newFrame = (frame *) malloc(sizeof(frame));
+    newFrame->seq = atoi(args[0]);
+    newFrame->src = args[1];
+    newFrame->dest = args[2];
+    newFrame->data = args[03];
+    enqueue(dataQ, newFrame);
 }
 
 /**
@@ -20,6 +52,11 @@ int main(int argc, char **argv)
     socklen_t			clilen;
     struct sockaddr_in	cliaddr, servaddr;
 
+    if (!queuesSet) {
+        dataQ = newQueue();
+        reqQ = newQueue();
+        queuesSet = true;
+    }
     listenfd = Socket(AF_INET, SOCK_STREAM, 0);
 
     bzero(&servaddr, sizeof(servaddr));
@@ -89,26 +126,8 @@ int main(int argc, char **argv)
                     client[i] = -1;
                 } else
                 {
-                    // parse args
-                    char args[10][25];
-                    char *pch;
-                    pch = strtok(buf, " ");
-                    strcpy(args[0], pch);
-                    int argc = 0;
-                    while (pch != NULL)
-                    {
-                        argc++;
-                        pch = strtok(NULL, " ,.-\n");
-                        if (pch != NULL)
-                            strcpy(args[argc], pch);
-                    }
-                    printf("parsed args:\n");
-                    for (int i = 0; i < argc; ++i)
-                        printf("args[%d]\t%s\n", i, args[i]);
-
-
+                    argparse(buf);
                     Writen(sockfd, buf, n);
-
                 }
 
                 if (--nready <= 0)

@@ -1,5 +1,5 @@
 csp:
-	 gcc -Wall -std=c99 csp.c -o csp
-	 gcc -Wall -std=c99 station.c -o station
+	gcc -Wall -std=c99 src/csp.c -o obj/csp
+	gcc -Wall -std=c99 src/station.c -o obj/station
 clean:
 	@rm -rf csp station
