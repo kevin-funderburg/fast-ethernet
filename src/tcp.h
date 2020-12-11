@@ -39,7 +39,11 @@
 #define MAXLINE 4096
 #define MAXCHAR 1024
 #define SERV_PORT 9877
-#define INPUT "data.txt"
+#define INPUT "input.txt"
+
+int currentSequence;
+int stationCount;
+
 /* Following shortens all the typecasts of pointer arguments: */
 #define	SA	struct sockaddr
 
@@ -55,7 +59,7 @@ void            Writen(int fd, void *ptr, size_t nbytes);
 ssize_t         writen(int fd, const void *vptr, size_t n);
 
 
-enum SIGNAL {REJECT, SEND, ADDED, INVALID};
+enum SIGNAL {REJECT, SEND, ADDED, INVALID, NODEST, STATION_NUM};
 
 
 int Accept(int fd, struct sockaddr *sa, socklen_t *salenptr)

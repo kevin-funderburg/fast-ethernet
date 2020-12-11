@@ -24,9 +24,9 @@ static void err_doit(int, int, const char *, va_list);
 
 int getDescriptor(int clientIndex);
 
-int sendToSP(int num, char* msg);
+int sendToSP(frame *f);
 
-int reply(char* msg);
+frame * reply(frame *incoming);
 
 int processFrame(char* frameText);
 

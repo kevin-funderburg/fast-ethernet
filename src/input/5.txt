@@ -1,0 +1,6 @@
+Wait for receiving 2 frames
+Frame 1, To SP 5
+Wait for receiving 1 frame
+Frame 2, To SP 1
+Frame 3, To SP 6
+Frame 4, To SP 1

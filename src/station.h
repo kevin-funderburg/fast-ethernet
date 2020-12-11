@@ -9,11 +9,13 @@
 
 enum instrType {SEND_INST, WAIT_INSTR};
 
-char* getInput();
+void getInput();
+
+int sendRequest();
 
 char* parseLine(char* line);
 
-void str_cli(FILE *fp, int sockfd);
+void runner(FILE *fp);
 
 int main(int argc, char **argv);
 
