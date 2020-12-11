@@ -7,4 +7,16 @@
 
 #include "tcp.h"
 
+enum instrType {SEND_INST, WAIT_INSTR};
+
+char* getInput();
+
+char* parseLine(char* line);
+
+void str_cli(FILE *fp, int sockfd);
+
+int main(int argc, char **argv);
+
+
+
 #endif //STATION_H

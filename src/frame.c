@@ -1,10 +1,19 @@
 //
 // Created by Kevin Funderburg on 12/8/20.
 //
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
+
 #include "frame.h"
+
+frame* newFrame(int seq, char* src, char* dest, char* data)
+{
+    frame *newFrame = (frame *) malloc(sizeof(frame));
+    newFrame->seq = seq;
+    newFrame->src = src;
+    newFrame->dest = dest;
+    newFrame->data = data;
+    return newFrame;
+}
+
 
 FrameQueue* newQueue()
 {
@@ -65,13 +74,11 @@ void enqueue(FrameQueue* fq, frame *newFrame)
 {
     if (fq->tail == NULL)  //empty list
         fq->head = fq->tail = newFrame;
-    else
-    {
-//        frame* tmp;
-//        tmp = fq->tail;
+    else {
         fq->tail->next = newFrame;
         fq->tail = fq->tail->next;
-//        free(tmp);
     }
     fq->numFrames++;
 }
+
+bool isFull(FrameQueue* fq) {return fq->numFrames == MAXFRAMES;}

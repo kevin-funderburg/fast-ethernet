@@ -6,10 +6,9 @@ set(CMAKE_C_STANDARD 11)
 include_directories(.)
 
 add_executable(fast_ethernet
-        csp.c
-        csp.h
-        frame.c
-        frame.h
-        main.c
-        sp.c
-        sp.h)
+        src/csp.c
+        src/csp.h
+        src/frame.c
+        src/frame.h
+        src/station.c
+        src/station.h)

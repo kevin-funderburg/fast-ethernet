@@ -37,8 +37,9 @@
 
 #define LISTENQ 5
 #define MAXLINE 4096
+#define MAXCHAR 1024
 #define SERV_PORT 9877
-#define INPUT "./input/data.txt"
+#define INPUT "data.txt"
 /* Following shortens all the typecasts of pointer arguments: */
 #define	SA	struct sockaddr
 
@@ -52,6 +53,9 @@ void            Shutdown(int fd, int how);
 const char*     Inet_ntop(int family, const void *addrptr, char *strptr, size_t len);
 void            Writen(int fd, void *ptr, size_t nbytes);
 ssize_t         writen(int fd, const void *vptr, size_t n);
+
+
+enum SIGNAL {REJECT, SEND, ADDED, INVALID};
 
 
 int Accept(int fd, struct sockaddr *sa, socklen_t *salenptr)

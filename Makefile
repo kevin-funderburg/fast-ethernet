@@ -1,8 +1,10 @@
 CC = gcc
 CFLAGS = -I./src -std=gnu99 -g
+MAKE=make
 
 obj/csp: obj/csp.o obj/frame.o | obj
 	$(CC) $(CFLAGS) -o $@ $^
+	$(MAKE) obj/station
 
 obj/station: obj/station.o obj/frame.o | obj
 	$(CC) $(CFLAGS) -o $@ $^
