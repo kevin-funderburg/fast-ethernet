@@ -1,5 +1,4 @@
 #include "tcp.h"
-#include "frame.h"
 
 FrameQueue* dataQ;
 FrameQueue* reqQ;
@@ -36,6 +35,7 @@ void argparse(char* argv)
     newFrame->dest = args[2];
     newFrame->data = args[03];
     enqueue(dataQ, newFrame);
+    printf("dataQ size: %d\n", dataQ->numFrames);
 }
 
 /**

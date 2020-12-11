@@ -5,7 +5,6 @@
 #ifndef TCP_H
 #define TCP_H
 
-#endif //TCP_H
 #include    <sys/types.h>   /* basic system data types */
 #include    <sys/socket.h>  /* basic socket definitions */
 #if TIME_WITH_SYS_TIME
@@ -34,6 +33,7 @@
 #include    <sys/un.h>      /* for Unix domain sockets */
 #include    <sys/select.h>
 #include    <stdbool.h>
+#include    "frame.h"
 
 #define LISTENQ 5
 #define MAXLINE 4096
@@ -170,3 +170,5 @@ void Writen(int fd, void *ptr, size_t nbytes)
 /* macros */
 #define	min(a,b)	((a) < (b) ? (a) : (b))
 #define	max(a,b)	((a) > (b) ? (a) : (b))
+
+#endif //TCP_H
