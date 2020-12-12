@@ -30,16 +30,16 @@ int logger(frame* f)
             snprintf(msg, MAXLINE, "%d) Receive request from SP %d\n", instCount, f->src);
             break;
         } case DATA: {
-            snprintf(msg, MAXLINE, "%) Receive data frame from %d to SP %d\n", instCount, f->src, f->dest);
+            snprintf(msg, MAXLINE, "%d) Receive data frame from %d to SP %d\n", instCount, f->src, f->dest);
             break;
         } case POS_REPLY: {
-            snprintf(msg, MAXLINE, "%) Send positive reply to SP %d\n", instCount, f->dest);
+            snprintf(msg, MAXLINE, "%d) Send positive reply to SP %d\n", instCount, f->dest);
             break;
         } case NEG_REPLY: {
-            snprintf(msg, MAXLINE, "%) Send positive reply to SP %d\n", instCount, f->dest);
+            snprintf(msg, MAXLINE, "%d) Send positive reply to SP %d\n", instCount, f->dest);
             break;
         } case FORWARD: {
-            snprintf(msg, MAXLINE, "%) Forward data frame (from SP %d) to SP %d\n", instCount, f->src, f->dest);
+            snprintf(msg, MAXLINE, "%d) Forward data frame (from SP %d) to SP %d\n", instCount, f->src, f->dest);
             break;
         } default:
             snprintf(msg, MAXLINE, "unknown message type: %d\n", f->type);
@@ -64,26 +64,6 @@ frame * argparse(char* argv)
     {
         frame* incoming = textToFrame(argv);
         return incoming;
-//        if (incoming == NULL) return INVALID;
-//
-//
-//        printf("...argpase()...\n"
-//               "argv: %s\n", argv);
-//        printf("==>BREAK==>\n");
-//
-//        printf("incoming->type: %d\n", incoming->type);
-//        switch (incoming->type) {
-//            case REQUEST: {
-//                frame *replyFrame = reply(incoming);
-//                sendToSP(replyFrame);
-//                return SEND;
-//
-//            }
-//            case DATA: {
-//                enqueue(dataQ, incoming);
-//                return ADDED;
-//            }
-//        }
     }
 }
 
@@ -151,7 +131,7 @@ int main(int argc, char **argv)
     socklen_t			clilen;
     char				buf[MAXLINE];
     struct sockaddr_in	cliaddr, servaddr;
-
+    instCount = 0;
 
     if (!queuesSet) {
         currentSequence = 0;
@@ -238,27 +218,34 @@ int main(int argc, char **argv)
                     frame* response;
                     switch (incoming->type)
                     {
-                        case POS_REPLY:
-                            response = newFrame(currentSequence++, incoming->src, sockfd, "send", POS_REPLY);
-                            break;
-                        case NEG_REPLY:
-                            response = newFrame(currentSequence++, incoming->src, sockfd, "wait", NEG_REPLY);
-                            break;
+
                         case DATA:
                             response = newFrame(currentSequence++, incoming->src, sockfd, "wait", FORWARD);
+                            enqueue(dataQ, incoming);
                             break;
+                        case REQUEST:
+                        {
+                            enqueue(reqQ, incoming);
+                            if (isFull(dataQ))
+                                response = newFrame(currentSequence++, incoming->src, sockfd, "wait", NEG_REPLY);
+                            else
+                                response = newFrame(currentSequence++, incoming->src, sockfd, "send", POS_REPLY);
+                            char* txt;
+                            txt = frameToText(response);
+                            bzero(buf, sizeof(buf));
+                            printf("txt: %s\n", txt);
+                            strcpy(buf, txt);
+                            printf("SENDING: %s\n", buf);
+                            write(sockfd, buf, sizeof(buf));
+                            break;
+                        }
                         default:
                             break;
                     }
 
                     logger(response);
+
                     char* txt;
-                    txt = frameToText(response);
-                    bzero(buf, sizeof(buf));
-                    printf("txt: %s\n", txt);
-                    strcpy(buf, txt);
-                    printf("SENDING: %s\n", buf);
-                    write(sockfd, buf, sizeof(buf));
 
                     char buf[MAXLINE];
                     printf("\tdataQ->size: %d\n", dataQ->size);

@@ -11,10 +11,6 @@ int         instCount;
 void testRunner()
 {
     printf("\n...testRunner()...\n");
-//    char* txt = "1,1,3,some data";
-//    frame* f = textToFrame(txt);
-//    printf("f: %d,%d,%d,%s,%d\n", f->seq, f->src, f->dest, f->data, f->type);
-//    printf("it worked\n");
     char buf[MAXLINE];
     char* txt;
     printf("\twaitingQ->size: %d\n", waitingQ->size);
@@ -52,13 +48,13 @@ int logger(frame* f)
             snprintf(msg, MAXLINE, "%d) Send request to CSP to send data frame %d to SP %d\n", instCount, f->src, f->dest);
             break;
         } case DATA: {
-            snprintf(msg, MAXLINE, "%) Send (via CSP) data frame %d to SP %d\n", instCount, f->dest);
+            snprintf(msg, MAXLINE, "%d) Send (via CSP) data frame %d to SP %d\n", instCount, f->dest);
             break;
         } case POS_REPLY: {
-            snprintf(msg, MAXLINE, "%) Receive positive reply (permission) from CSP to send data frame %d to SP %d\n", instCount, f->dest);
+            snprintf(msg, MAXLINE, "%d) Receive positive reply (permission) from CSP to send data frame %d to SP %d\n", instCount, f->dest);
             break;
         } case NEG_REPLY: {
-            snprintf(msg, MAXLINE, "%) Receive reject reply from CSP to send data frame %d to SP %d\n", instCount, f->dest);
+            snprintf(msg, MAXLINE, "%d) Receive reject reply from CSP to send data frame %d to SP %d\n", instCount, f->dest);
             break;
         } default:
             snprintf(msg, MAXLINE, "unknown message type: %d\n", f->type);
@@ -257,11 +253,16 @@ void runner(FILE *fp) {
                 printf("txt: %s\n", txt);
                 strcpy(buf, txt);
                 printf("SENDING: %s\n", buf);
+                logger(t);
 //                Writen(sockfd, buf, n);     //send to cps
                 write(sockfd, buf, sizeof(buf));
                 bzero(buf, sizeof(buf));
                 read(sockfd, buf, sizeof(buf));
                 printf("RECEIVING: %s\n", buf);
+                if ((strcmp(buf, "") != 0)) {
+                    frame *received = textToFrame(buf);
+                    logger(received);
+                }
 //                if ( (n = read(fileno(fp), buf, MAXLINE)) == 0) {
 //                    stdineof = 1;
 //                    Shutdown(sockfd, SHUT_WR);	/* send FIN */
@@ -281,6 +282,7 @@ int main(int argc, char **argv)
     struct sockaddr_in	servaddr;
     waitingQ = newQueue();
     stationNum = none;
+    instCount = 0;
     printf("argc: %d\n", argc);
     getInput();
 
