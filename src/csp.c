@@ -7,12 +7,48 @@ int         stationCount;
 int		    nready, client[FD_SETSIZE];
 fd_set	    wset, rset, allset;       //set of file descriptors
 int         stationNums[10];
+int         instCount;
 bool        queuesSet = false;
 
-
-void getInstr(char* line)
+int logger(frame* f)
 {
+    printf("\n...logger()...\n");
+    if (f == NULL) return -1;
 
+    char buf[MAXCHAR];
+    char filename[MAXLINE];
+    snprintf(filename, MAXLINE, "src/output/csp.txt");
+    FILE *fp = fopen(filename, "a");
+    if(!fp){
+        printf("error: unable to read source file %s\n", "src/input/1.txt");
+        err_sys("couldn't open input file\n");
+    }
+    char msg[MAXLINE];
+    instCount++;
+    switch (f->type) {
+        case REQUEST: {
+            snprintf(msg, MAXLINE, "%d) Receive request from SP %d\n", instCount, f->src);
+            break;
+        } case DATA: {
+            snprintf(msg, MAXLINE, "%) Receive data frame from %d to SP %d\n", instCount, f->src, f->dest);
+            break;
+        } case POS_REPLY: {
+            snprintf(msg, MAXLINE, "%) Send positive reply to SP %d\n", instCount, f->dest);
+            break;
+        } case NEG_REPLY: {
+            snprintf(msg, MAXLINE, "%) Send positive reply to SP %d\n", instCount, f->dest);
+            break;
+        } case FORWARD: {
+            snprintf(msg, MAXLINE, "%) Forward data frame (from SP %d) to SP %d\n", instCount, f->src, f->dest);
+            break;
+        } default:
+            snprintf(msg, MAXLINE, "unknown message type: %d\n", f->type);
+            break;
+    }
+    printf("msg: %s\n", msg);
+    fputs(msg, fp);
+    printf("\n...done | logger()...\n");
+    return 0;
 }
 
 
@@ -21,100 +57,33 @@ void getInstr(char* line)
  * @param argv
  * @return int - reply status
  */
-int argparse(char* argv)
+frame * argparse(char* argv)
 {
-
-//    if (strcmp)
-    frame* incoming = textToFrame(argv);
-    enqueue(reqQ, incoming);
-
-    printf("...argpase()...\n"
-           "argv: %s\n", argv);
-
-//    char args[10][25];
-//    char *pch;
-//    int argc = 0;
-//    char* buf[MAXLINE];
-
-    if (incoming->type == REQUEST)
+    printf("argv: %s\n", argv);
+    if (strcmp(argv, "") != 0)
     {
-        frame* replyFrame = reply(incoming);
-        sendToSP(replyFrame);
-    }
-
-//    if ((strncmp("request", argv, 7) == 0))
-//    {
-//        printf("\nit's a request.\n");
-//        return reply(argv);
-//    }
-//    else if ((strncmp("getSP", argv, 5) == 0))
-//    {
-//        printf("getting client: %s\n", argv);
-//        char* pch;
-//        pch = strtok(argv, " ");
-//        strcpy(args[0], pch);
-//        int clientindex = -1;
+        frame* incoming = textToFrame(argv);
+        return incoming;
+//        if (incoming == NULL) return INVALID;
 //
-//        while (pch != NULL)
-//        {
-//            argc++;
-//            clientindex = atoi(pch);
-//            pch = strtok(NULL, " ,.-");
-//            if (pch != NULL) strcpy(args[argc], pch);
-//        }
-//        int fdIndex = getDescriptor(clientindex);
-//        char* msg;
-//        if (fdIndex != -1)
-//        {
-//            msg = "calling from other worlds\n";
-//            strcpy(buf, msg);
-//            Writen(fdIndex, buf, MAXLINE);
-//        }
-//        else {
-//            msg = "SP not connected\n";
-//            return NODEST;
-//        }
 //
-//    }
-//    else
-//    {
-//        printf("it's a frame.\n");
-//        return processFrame(argv);
-//    }
-}
-
-
-int processFrame(char* argv)
-{
-    char args[10][25];
-    char *pch;
-    int argc = 0;
-    char* buf[MAXLINE];
-
-    pch = strtok(argv, ",");
-    strcpy(args[0], pch);
-    while (pch != NULL)
-    {
-        argc++;
-        pch = strtok(NULL, " ,.-");
-        if (pch != NULL)
-//                printf("pch: %s\n", pch);
-            strcpy(args[argc], pch);
-    }
-
-    printf("parsed args:\n");
-    for (int i = 0; i < argc; ++i)
-        printf("args[%d]\t%s\n", i, args[i]);
-
-    if (argc == 4) {
-        frame* f = newFrame(atoi(args[0]), args[1], args[2], args[3], DATA);
-        enqueue(dataQ, f);
-        printf("new frame added\n");
-        printf("dataQ size: %d\n", dataQ->size);
-        return ADDED;
-    } else {
-        printf("argv is not a valid format: %s\n", argv);
-        return INVALID;
+//        printf("...argpase()...\n"
+//               "argv: %s\n", argv);
+//        printf("==>BREAK==>\n");
+//
+//        printf("incoming->type: %d\n", incoming->type);
+//        switch (incoming->type) {
+//            case REQUEST: {
+//                frame *replyFrame = reply(incoming);
+//                sendToSP(replyFrame);
+//                return SEND;
+//
+//            }
+//            case DATA: {
+//                enqueue(dataQ, incoming);
+//                return ADDED;
+//            }
+//        }
     }
 }
 
@@ -124,7 +93,7 @@ int processFrame(char* argv)
  * @param argv
  * @return int - reply status
  */
-frame * reply(frame *incoming)
+frame* reply(frame *incoming)
 {
 //    frame* f = textToFrame(argv);
     frame* response;
@@ -142,14 +111,21 @@ frame * reply(frame *incoming)
 
 int sendToSP(frame *f)
 {
+    printf("...sendToSP()...\n");
     char buf[MAXLINE];
+    bzero(buf, MAXLINE);
+
+    printf("f->dest: %d\n", f->dest);
+    printf("==>BREAK==>\n");
     int fdIndex = getDescriptor(f->dest);
+    printf("fdIndex: %d\n", fdIndex);
     char* msg;
     if (fdIndex != -1) {
-        msg = frameToText(send);
+        msg = frameToText(f);
         strcpy(buf, msg);
         Writen(fdIndex, buf, MAXLINE);
     }
+    printf("\n...done | sendToSP()...\n");
 }
 
 
@@ -256,27 +232,55 @@ int main(int argc, char **argv)
                 }
                 else
                 {
-
                     printf("sockfd: %d\n", sockfd);
                     printf("SIZEOF n: %zd\n", n);
-
-
-                    signal = argparse(buf);
-                    switch (signal) {
-                        case SEND: reply = "send it\n"; break;
-                        case REJECT: reply = "wait\n"; break;
-                        case ADDED: reply = "frame added\n"; break;
-                        case INVALID: reply = "invalid string\n"; break;
-                        case NODEST: reply = "SP not connected\n"; break;
-                        case STATION_NUM: {
-                            char reply[MAXLINE];
-                            snprintf(reply, MAXLINE, "your station number: %d\n", stationCount);
-                        }
-                        default: reply = "unknown error\n"; break;
+                    frame* incoming = argparse(buf);
+                    frame* response;
+                    switch (incoming->type)
+                    {
+                        case POS_REPLY:
+                            response = newFrame(currentSequence++, incoming->src, sockfd, "send", POS_REPLY);
+                            break;
+                        case NEG_REPLY:
+                            response = newFrame(currentSequence++, incoming->src, sockfd, "wait", NEG_REPLY);
+                            break;
+                        case DATA:
+                            response = newFrame(currentSequence++, incoming->src, sockfd, "wait", FORWARD);
+                            break;
+                        default:
+                            break;
                     }
 
-                    strcpy(buf, reply);
-                    Writen(sockfd, buf, MAXLINE);
+                    logger(response);
+                    char* txt;
+                    txt = frameToText(response);
+                    bzero(buf, sizeof(buf));
+                    printf("txt: %s\n", txt);
+                    strcpy(buf, txt);
+                    printf("SENDING: %s\n", buf);
+                    write(sockfd, buf, sizeof(buf));
+
+                    char buf[MAXLINE];
+                    printf("\tdataQ->size: %d\n", dataQ->size);
+                    int q = dataQ->size;
+                    for (int i = 0; i < q; ++i)
+                    {
+                        printf("i: %d\n", i);
+                        bzero(buf, MAXLINE);
+                        frame *t = top(dataQ);
+                        txt = frameToText(t);
+                        printf("txt: %s\n", txt);
+                        strcpy(buf, txt);
+                        printf("SENDING: %s\n", buf);
+                        write(sockfd, buf, sizeof(buf));
+
+                        bzero(buf, sizeof(buf));
+                        read(sockfd, buf, sizeof(buf));
+
+                        strcpy(buf, reply);
+                        Writen(sockfd, buf, MAXLINE);
+                        pop(dataQ);
+                    }
                 }
 
                 if (--nready <= 0)

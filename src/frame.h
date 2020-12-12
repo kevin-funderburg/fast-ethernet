@@ -12,14 +12,14 @@
 //#include "tcp.h"
 
 #define MAXFRAMES 5
-#define none -1
+#define none 0
 #define CSP_ADDR 9999
 
 #define SEND_MSG "send"
 #define WAIT_MSG "wait"
 #define REQ_MSG "request"
 
-enum frameType {DATA, REQUEST, POS_REPLY, NEG_REPLY};
+enum frameType {DATA = 0, REQUEST = 1, POS_REPLY = 2, NEG_REPLY = 3, FORWARD = 4};
 
 typedef struct framenode frame;
 
@@ -46,7 +46,7 @@ FrameQueue* newQueue();
 
 frame* top(FrameQueue* queue);
 
-void pop();
+void pop(FrameQueue* fq);
 
 void enqueue(FrameQueue* fq, frame* newFrame);
 

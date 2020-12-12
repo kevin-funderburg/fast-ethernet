@@ -4,27 +4,80 @@
 
 #include "station.h"
 FrameQueue* waitingQ;
-int stationNum;
-int					sockfd;
+int         stationNum;
+int			sockfd;
+int         instCount;
 
 void testRunner()
 {
-    printf("...testRunner()...\n");
-    char* txt = "1,1,3,some data";
-    frame* f = textToFrame(txt);
-    printf("f: %d,%d,%d,%s,%d\n", f->seq, f->src, f->dest, f->data, f->type);
-    printf("it worked\n");
+    printf("\n...testRunner()...\n");
+//    char* txt = "1,1,3,some data";
+//    frame* f = textToFrame(txt);
+//    printf("f: %d,%d,%d,%s,%d\n", f->seq, f->src, f->dest, f->data, f->type);
+//    printf("it worked\n");
+    char buf[MAXLINE];
+    char* txt;
+    printf("\twaitingQ->size: %d\n", waitingQ->size);
+    int q = waitingQ->size;
+    for (int i = 0; i < q; ++i) {
+        printf("i: %d\n", i);
+        bzero(buf, MAXLINE);
+        frame* t = top(waitingQ);
+        txt = frameToText(t);
+        printf("txt: %s\n", txt);
+        strcpy(buf, txt);
+//        Writen(sockfd, buf, n);     //send to cps
+        pop(waitingQ);
+    }
+    printf("\n...done | testRunner()...\n");
 }
 
-void logger()
+int logger(frame* f)
 {
-    //TODO
+    printf("\n...logger()...\n");
+    if (f == NULL) return -1;
+
+    char buf[MAXCHAR];
+    char filename[MAXLINE];
+    snprintf(filename, MAXLINE, "src/output/%d.txt", stationNum);
+    FILE *fp = fopen(filename, "a");
+    if(!fp){
+        printf("error: unable to read source file %s\n", "src/input/1.txt");
+        err_sys("couldn't open input file\n");
+    }
+    char msg[MAXLINE];
+    instCount++;
+    switch (f->type) {
+        case REQUEST: {
+            snprintf(msg, MAXLINE, "%d) Send request to CSP to send data frame %d to SP %d\n", instCount, f->src, f->dest);
+            break;
+        } case DATA: {
+            snprintf(msg, MAXLINE, "%) Send (via CSP) data frame %d to SP %d\n", instCount, f->dest);
+            break;
+        } case POS_REPLY: {
+            snprintf(msg, MAXLINE, "%) Receive positive reply (permission) from CSP to send data frame %d to SP %d\n", instCount, f->dest);
+            break;
+        } case NEG_REPLY: {
+            snprintf(msg, MAXLINE, "%) Receive reject reply from CSP to send data frame %d to SP %d\n", instCount, f->dest);
+            break;
+        } default:
+            snprintf(msg, MAXLINE, "unknown message type: %d\n", f->type);
+            break;
+    }
+    printf("msg: %s\n", msg);
+    fputs(msg, fp);
+    printf("\n...done | logger()...\n");
+    return 0;
 }
 
 void getInput()
 {
+    printf("\n...getInput()...%\n");
     char buf[MAXCHAR];
-    FILE *fp = fopen("src/input/1.txt", "r");
+    char filename[MAXLINE];
+    snprintf(filename, MAXLINE, "src/input/%d.txt", stationNum);
+    printf("filename: %s\n", filename);
+    FILE *fp = fopen(filename, "r");
     if(!fp){
         printf("error: unable to read source file %s\n", "src/input/1.txt");
         err_sys("couldn't open input file\n");
@@ -34,17 +87,19 @@ void getInput()
         parseLine(buf);
     }
     fclose(fp);
+    printf("\n...done | getInput()...%\n");
+
 }
 
 
 char* parseLine(char* line)
 {
-
+    printf("\n...parseLine(char* line)...\n");
     if ((strncmp("Frame", line, 5) == 0))
     {
         printf("Its a frame request\n");
 
-        sendRequest();
+//        sendRequest();
 
         char *end;
         const char *seps = " \t\r\n\f\v,";
@@ -88,28 +143,34 @@ char* parseLine(char* line)
                 waitFrameNum = atoi(p);
             i++;
         }
-        frame* f = newFrame(currentSequence++, -1, destFrameNum, "", WAIT_INSTR);
+        frame* f = newFrame(currentSequence++, stationNum, destFrameNum, "", WAIT_INSTR);
         enqueue(waitingQ, f);
     }
+    printf("\n...done | parseLine()...%\n");
+
 }
 
 
 int sendRequest()
 {
-    currentSequence++;
+    printf("\n...sendRequest()...%\n");
+    frame* request = newFrame(currentSequence++, stationNum, CSP_ADDR, "request", REQUEST);
     char buf[MAXLINE];
     bzero(buf,  sizeof(buf));
-    char* msg = "request";
+    char* msg = frameToText(request);
     strcpy(buf, msg);
     printf("%d) SENDING REQUEST: %s\n", currentSequence, buf);
     Writen(sockfd, buf, sizeof(buf));
+    printf("\n...done | sendRequest()...%\n");
+
 }
 
 
 void sendFrame()
 {
-    printf("...sendFrame()...\n");
+    printf("\n...sendFrame()...\n");
     char* buf[MAXLINE];
+    bzero(buf, MAXLINE);
     frame* front = top(waitingQ);
 //    printf("front->seq: %d\n", front->seq);
     char* msg = frameToText(front);
@@ -117,7 +178,7 @@ void sendFrame()
     strcpy(buf, msg);
     printf("SENDING FRAME: %s\n", buf);
     Writen(sockfd, buf, sizeof(buf));
-    printf("...done...\n");
+    printf("\n...done | sendFrame()...\n");
 }
 
 //void getStationNum()
@@ -126,6 +187,7 @@ void sendFrame()
 
 
 void runner(FILE *fp) {
+    printf("\n...runner(FILE *fp)...\n");
     int			maxfdp1, stdineof;
     fd_set		rset;
     char		buf[MAXLINE];
@@ -156,7 +218,10 @@ void runner(FILE *fp) {
                     err_quit("station: server terminated prematurely");
             }
             printf("RECEIVING: %s\n", buf);
-
+            if ((strcmp(buf, "") != 0)) {
+                frame *received = textToFrame(buf);
+                logger(received);
+            }
             if ((strncmp("send", buf, 4) == 0))
             {
                 bzero(buf, MAXLINE);
@@ -179,10 +244,36 @@ void runner(FILE *fp) {
                 FD_CLR(fileno(fp), &rset);
                 continue;
             }
-            printf("SENDING: %s\n", buf);
-            Writen(sockfd, buf, n);     //send to cps
+            char* txt;
+
+            char buf[MAXLINE];
+            printf("\twaitingQ->size: %d\n", waitingQ->size);
+            int q = waitingQ->size;
+            for (int i = 0; i < q; ++i) {
+                printf("i: %d\n", i);
+                bzero(buf, MAXLINE);
+                frame* t = top(waitingQ);
+                txt = frameToText(t);
+                printf("txt: %s\n", txt);
+                strcpy(buf, txt);
+                printf("SENDING: %s\n", buf);
+//                Writen(sockfd, buf, n);     //send to cps
+                write(sockfd, buf, sizeof(buf));
+                bzero(buf, sizeof(buf));
+                read(sockfd, buf, sizeof(buf));
+                printf("RECEIVING: %s\n", buf);
+//                if ( (n = read(fileno(fp), buf, MAXLINE)) == 0) {
+//                    stdineof = 1;
+//                    Shutdown(sockfd, SHUT_WR);	/* send FIN */
+//                    FD_CLR(fileno(fp), &rset);
+//                    continue;
+//                }
+                pop(waitingQ);
+            }
         }
+    printf("\n...done | runner(FILE *fp)...\n");
     }
+
 }
 
 int main(int argc, char **argv)
@@ -190,16 +281,20 @@ int main(int argc, char **argv)
     struct sockaddr_in	servaddr;
     waitingQ = newQueue();
     stationNum = none;
-
+    printf("argc: %d\n", argc);
     getInput();
-//    printf("argv: %s\n", argv);
-    if (argc != 2)
-        err_sys("usage: station <IPaddress>");
-    if (strcmp(argv[1], "test") == 0) {
-//        getInput();
-//        printQueue(waitingQ);
-        testRunner();
-        exit(0);
+
+    if (argc < 2)
+        err_sys("usage: station <[0-9]>");
+    if (argc == 2) {
+        if (strcmp(argv[1], "test") == 0) {
+            testRunner();
+            exit(0);
+        } else {
+            printf("its 2\n");
+            printf("argv[1]: %s\n", argv[1]);
+            stationNum = atoi(argv[1]);
+        }
     }
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -210,7 +305,6 @@ int main(int argc, char **argv)
 
     printf("servaddr.sin_port: %d\n", servaddr.sin_port);
     inet_pton(AF_INET, argv[1], &servaddr.sin_addr);
-
     connect(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
 
     runner(stdin);		/* do it all */

@@ -10,8 +10,8 @@ frame* newFrame(int seq, int src, int dest, char* data, int type)
     printf("newFrame:\n");
     printf("seq: %d\n", seq);
     printf("src: %d\n", src);
-    printf("src: %d\n", dest);
-    printf("src: %s\n", data);
+    printf("dest: %d\n", dest);
+    printf("data: %s\n", data);
     printf("newFrame: %d,%d,%d,%s,%d\n", seq,src,dest,data,type);
     frame *newFrame = (frame *) malloc(sizeof(frame));
     newFrame->seq = seq;
@@ -34,7 +34,12 @@ FrameQueue* newQueue()
 }
 
 
-frame* top(FrameQueue* fq) { return fq->head; }
+frame* top(FrameQueue* fq)
+{
+    printf("...top()...\n");
+    return fq->head;
+    printf("...done | top()...\n");
+}
 
 
 void pop(FrameQueue* fq)
@@ -50,13 +55,14 @@ void pop(FrameQueue* fq)
 
 void enqueue(FrameQueue* fq, frame *newFrame)
 {
-//    printf("...enqueue()...\n");
+    printf("...enqueue()...\n");
 //    printf("newFrame: %d,%d,%d,%s,%d\n", newFrame->seq, newFrame->src, newFrame->dest, newFrame->data, newFrame->type);
     if (isEmpty(fq)) { //empty list
-        printf("queue is empty\n");
+        printf("\tqueue is empty\n");
         fq->head = newFrame;
     } else if (fq->head->seq > newFrame->seq)   //add to front
     {
+        printf("\tadding to head\n");
         newFrame->next = fq->head;
         fq->head = newFrame;
     }
@@ -67,11 +73,13 @@ void enqueue(FrameQueue* fq, frame *newFrame)
         {
             if ((cursor->seq < newFrame->seq) && (cursor->next == NULL))  //add to tail
             {
+                printf("\tadding to tail\n");
                 cursor->next = newFrame;
                 break;
             }
             else if ((cursor->seq < newFrame->seq) && (cursor->next->seq > newFrame->seq))   //add inside
             {
+                printf("\tadding inside\n");
                 newFrame->next = cursor->next;
                 cursor->next = newFrame;
                 break;
@@ -81,11 +89,13 @@ void enqueue(FrameQueue* fq, frame *newFrame)
         }
     }
     fq->size++;
+    printf("\tfq->size: %d\n", fq->size);
 //    printf("\t\tfq->head->type: %d\n", fq->head->type);
 //    printf("\t\tfq->head->seq: %d\n", fq->head->seq);
 //    printf("\t\tfq->head->src: %d\n", fq->head->src);
 //    printf("\t\tfq->head->dest: %d\n", fq->head->dest);
 //    printQueue(fq);
+    printf("\n...done | enqueue()...\n");
 }
 
 
@@ -97,7 +107,7 @@ bool isEmpty(FrameQueue* fp) { return fp->head == NULL; }
 
 char* frameToText(frame* f)
 {
-    printf("...frameToText()...\n");
+    printf("\n...frameToText()...\n");
     char frameTxt[MAXLINE];
 
     printf("f->type: %d\n", f->type);
@@ -115,9 +125,10 @@ char* frameToText(frame* f)
             strcat(frameTxt,"send");
             break;
         case DATA:
-            printf("CASE REQUEST\n");
+            printf("CASE DATA\n");
             printf("f->seq: %d\n", f->seq);
             snprintf(frameTxt, MAXLINE, "%d,%d,%d,%s,%d\n", f->seq, f->src, f->dest, f->data, f->type);
+            break;
         default:
             printf("invalid frame type\n");
             break;
@@ -132,19 +143,8 @@ frame* textToFrame(char* txt)
     printf("...textToFrame()...\n");
     frame *f;
 
-    if ((strncmp("request", txt, 7) == 0))
-    {
-        f = newFrame(none, none, none, "request", REQUEST);
-    }
-    else if ((strncmp("wait", txt, 4) == 0))
-    {
-        f = newFrame(none, none, none, "wait", NEG_REPLY);
-    }
-    else if ((strncmp("send", txt, 4) == 0))
-    {
-        f = newFrame(none, none, none, "send", POS_REPLY);
-    }
-    else
+    if ((strncmp(" To ", txt, 4) == 0))
+//    if ((strncmp("request", txt, 7) == 0))
     {
         char strArr[strlen(txt)];
         strcpy(strArr, txt);
@@ -161,7 +161,7 @@ frame* textToFrame(char* txt)
             pch = strtok(NULL, ",");
             if (pch != NULL) {
                 printf("pch: %s\n", pch);
-                if (argc == 3)
+                if (argc == 2)
                     data = pch;
                 else
                     strcpy(args[argc], pch);
@@ -175,7 +175,54 @@ frame* textToFrame(char* txt)
         for (int i = 0; i < argc; ++i)
             printf("args[%d]: %s\n", i, args[i]);
 
-        f = newFrame(atoi(args[0]), atoi(args[1]), atoi(args[2]), data, DATA);
+
+        f = newFrame(none, none, atoi(args[1]), "request", REQUEST);
+    }
+    else if ((strncmp("wait", txt, 4) == 0))
+    {
+        f = newFrame(none, none, none, "wait", NEG_REPLY);
+    }
+    else if ((strncmp("send", txt, 4) == 0))
+    {
+        f = newFrame(none, none, none, "send", POS_REPLY);
+    }
+    else
+    {
+        if (strlen(txt) > 5)
+        {
+            char strArr[strlen(txt)];
+            strcpy(strArr, txt);
+            char args[10][25];
+            char *pch;
+            int argc = 0;
+            printf("txt: %s\n", txt);
+            pch = strtok(strArr, ",");
+            strcpy(args[0], pch);
+            char *data;
+            while (pch != NULL) {
+                argc++;
+                pch = strtok(NULL, ",");
+                if (pch != NULL) {
+                    printf("pch: %s\n", pch);
+                    if (argc == 3)
+                        data = pch;
+                    else
+                        strcpy(args[argc], pch);
+                } else {
+                    printf("pch == NULL\n");
+                    break;
+                }
+            }
+            printf("break\n");
+
+            for (int i = 0; i < argc; ++i)
+                printf("args[%d]: %s\n", i, args[i]);
+
+            f = newFrame(atoi(args[0]), atoi(args[1]), atoi(args[2]), data, DATA);
+        } else {
+            printf("txt is too short to make a frame: %s\n", txt);
+            return NULL;
+        }
     }
 
     return f;
