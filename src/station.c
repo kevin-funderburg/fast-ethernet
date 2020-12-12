@@ -38,7 +38,7 @@ int logger(frame* f)
     snprintf(filename, MAXLINE, "src/output/%d.txt", stationNum);
     FILE *fp = fopen(filename, "a");
     if(!fp){
-        printf("error: unable to read source file %s\n", "src/input/1.txt");
+        printf("error: unable to read source file %s\n", filename);
         err_sys("couldn't open input file\n");
     }
     char msg[MAXLINE];

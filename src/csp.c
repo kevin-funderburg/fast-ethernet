@@ -20,7 +20,7 @@ int logger(frame* f)
     snprintf(filename, MAXLINE, "src/output/csp.txt");
     FILE *fp = fopen(filename, "a");
     if(!fp){
-        printf("error: unable to read source file %s\n", "src/input/1.txt");
+        printf("error: unable to read source file %s\n", filename); 
         err_sys("couldn't open input file\n");
     }
     char msg[MAXLINE];
@@ -264,8 +264,9 @@ int main(int argc, char **argv)
                         bzero(buf, sizeof(buf));
                         read(sockfd, buf, sizeof(buf));
 
-                        strcpy(buf, reply);
-                        Writen(sockfd, buf, MAXLINE);
+                        //strcpy(buf, reply);
+                        //Writen(sockfd, buf, MAXLINE);
+                        printf("==>BREAK==>\n");
                         pop(dataQ);
                     }
                 }

@@ -1,6 +1,6 @@
 #l!/bin/bash
-rm -rf ./src/output
-mkdir ./src/ouput
+#rm -rf ./src/output
+#mkdir ./src/ouput
 #echo 'sheduler is: ' $scheduler
 
 for ((i = 1; i < 10; i++)); do
